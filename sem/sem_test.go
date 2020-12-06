@@ -1,47 +1,12 @@
 package sem
 
 import (
-	"errors"
-	"os"
 	"reflect"
-	"syscall"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
-
-func Test_errnoErr(t *testing.T) {
-	type args struct {
-		errno syscall.Errno
-	}
-	tests := []struct {
-		name     string
-		args     args
-		expected error
-		wantErr  bool
-	}{
-		// TODO: Add test cases.
-		{
-			args:     args{syscall.EEXIST},
-			expected: os.ErrExist,
-			wantErr:  true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := errnoErr(tt.args.errno)
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("errnoErr() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			if !errors.Is(err, tt.expected) {
-				t.Errorf("errnoErr() err: %v expected: %v", err, tt.expected)
-			}
-		})
-	}
-}
 
 func TestSemGet(t *testing.T) {
 	testSem := &Semaphore{testSemKey, 1}
@@ -76,6 +41,9 @@ func TestSemGet(t *testing.T) {
 	var firstGot *Semaphore
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			setupTest()
+			defer teardownTest()
+
 			got, err := SemGet(tt.args.key, tt.args.nsems, tt.args.flags)
 			log.Infof("After SemGet: got :%v e: %v", got, err)
 			if (err != nil) != tt.wantErr {
@@ -96,17 +64,11 @@ func TestSemGet(t *testing.T) {
 		})
 	}
 	if firstGot != nil {
-		firstGot.Destroy()
+		firstGot.Destroy(0)
 	}
 }
 
 func TestSemaphore_SetVal(t *testing.T) {
-	s, err := SemGet(testSemKey, 1, IPC_CREAT|SEM_A|SEM_R)
-	if err != nil {
-		return
-	}
-	defer s.Destroy()
-
 	type fields struct {
 		semid int
 		nsems int
@@ -134,6 +96,15 @@ func TestSemaphore_SetVal(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			setupTest()
+			defer teardownTest()
+
+			s, err := SemGet(testSemKey, 1, IPC_CREAT|SEM_A|SEM_R)
+			if err != nil {
+				return
+			}
+			defer s.Destroy(0)
+
 			if err := s.SetVal(tt.args.semNum, tt.args.val); (err != nil) != tt.wantErr {
 				t.Errorf("Semaphore.SetVal() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -153,12 +124,6 @@ func TestSemaphore_SetVal(t *testing.T) {
 }
 
 func TestSemaphore_Wait(t *testing.T) {
-	s, err := SemGet(testSemKey, 1, IPC_CREAT|SEM_A|SEM_R)
-	if err != nil {
-		return
-	}
-	defer s.Destroy()
-
 	type fields struct {
 		semid int
 		nsems int
@@ -198,6 +163,15 @@ func TestSemaphore_Wait(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			setupTest()
+			defer teardownTest()
+
+			s, err := SemGet(testSemKey, 1, IPC_CREAT|SEM_A|SEM_R)
+			if err != nil {
+				return
+			}
+			defer s.Destroy(0)
+
 			s.SetVal(tt.args.semNum, tt.theSet)
 
 			if err := s.Wait(tt.args.semNum); (err != nil) != tt.wantErr {
@@ -216,12 +190,6 @@ func TestSemaphore_Wait(t *testing.T) {
 }
 
 func TestSemaphore_Post(t *testing.T) {
-	s, err := SemGet(testSemKey, 1, IPC_CREAT|SEM_A|SEM_R)
-	if err != nil {
-		return
-	}
-	defer s.Destroy()
-
 	type fields struct {
 		semid int
 		nsems int
@@ -262,6 +230,15 @@ func TestSemaphore_Post(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			setupTest()
+			defer teardownTest()
+
+			s, err := SemGet(testSemKey, 1, IPC_CREAT|SEM_A|SEM_R)
+			if err != nil {
+				return
+			}
+			defer s.Destroy(0)
+
 			s.SetVal(tt.args.semNum, tt.theSet)
 
 			if err := s.Post(tt.args.semNum); (err != nil) != tt.wantErr {
