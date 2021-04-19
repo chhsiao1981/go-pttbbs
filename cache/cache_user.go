@@ -182,7 +182,7 @@ func DoSearchUserRaw(userID *ptttype.UserID_t, rightID *ptttype.UserID_t) (pttty
 		)
 	}
 
-	logrus.Infof("DoSearchUserRaw: unable to find user: userID: %v h: %v", types.CstrToString(userID[:]), h)
+	logrus.Infof("DoSearchUserRaw: unable to find user: userID: %v h: %v MAX_USERS: %v", types.CstrToString(userID[:]), h, ptttype.MAX_USERS)
 	return 0, nil
 }
 
