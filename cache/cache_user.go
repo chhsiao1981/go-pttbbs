@@ -7,6 +7,7 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/types"
 
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -171,6 +172,7 @@ func DoSearchUserRaw(userID *ptttype.UserID_t, rightID *ptttype.UserID_t) (pttty
 			if userID[0] != 0 && rightID != nil {
 				copy(rightID[:], shmUserID[:])
 			}
+			logrus.Infof("DoSearchUserRaw: found user: userID: %v h: %v uid: %v", types.CstrToString(userID[:]), h, p.ToUid())
 			return p.ToUid(), nil
 		}
 		Shm.ReadAt(
@@ -180,6 +182,7 @@ func DoSearchUserRaw(userID *ptttype.UserID_t, rightID *ptttype.UserID_t) (pttty
 		)
 	}
 
+	logrus.Infof("DoSearchUserRaw: unable to find user: userID: %v h: %v", types.CstrToString(userID[:]), h)
 	return 0, nil
 }
 
