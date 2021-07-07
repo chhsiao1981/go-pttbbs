@@ -179,7 +179,7 @@ func postpermMsg(user *ptttype.UserecRaw, board *ptttype.BoardHeaderRaw) (err er
 
 func bannedMsg(user *ptttype.UserecRaw, board *ptttype.BoardHeaderRaw) (err error) {
 	if ptttype.USE_NEW_BAN_SYSTEM {
-		expireTS := isBannedByBoard(user, board)
+		expireTS, _ := isBannedByBoard(user, board)
 		nowTS := types.NowTS()
 		if expireTS > nowTS {
 			return ErrBanned
@@ -195,6 +195,5 @@ func bannedMsg(user *ptttype.UserecRaw, board *ptttype.BoardHeaderRaw) (err erro
 		}
 
 	}
-
 	return nil
 }
