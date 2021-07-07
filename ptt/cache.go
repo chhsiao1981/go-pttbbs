@@ -152,7 +152,10 @@ func getNewUtmpEnt(uinfo *ptttype.UserInfoRaw) (utmpID ptttype.UtmpID, err error
 	return ptttype.UtmpID(-1), ErrNewUtmp
 }
 
-func postpermMsg(user *ptttype.UserecRaw, board *ptttype.BoardHeaderRaw) (err error) {
+//postpermMsg
+//
+//https://github.com/ptt/pttbbs/blob/master/mbbsd/cache.c#L209
+func postpermMsg(uid ptttype.Uid, user *ptttype.UserecRaw, bid ptttype.Bid, board *ptttype.BoardHeaderRaw) (err error) {
 	if isReadonlyBoard(&board.Brdname) {
 		return ErrReadOnly
 	}
@@ -172,6 +175,36 @@ func postpermMsg(user *ptttype.UserecRaw, board *ptttype.BoardHeaderRaw) (err er
 
 	if board.BrdAttr.HasPerm(ptttype.BRD_GUESTPOST) {
 		return nil
+	}
+
+	if user.UserLevel.HasUserPerm(ptttype.PERM_POST) {
+		return ErrNoPost
+	}
+
+	//秘密看板特別處理.
+	if board.BrdAttr.HasPerm(ptttype.BRD_HIDE) {
+		return nil
+	}
+
+	if board.BrdAttr.HasPerm(ptttype.BRD_RESTRICTEDPOST) && !cache.IsHiddenBoardFriend(bid.ToBidInStore(), uid.ToUidInStore()) {
+		return ErrRestricted
+	}
+
+	if user.UserLevel.HasUserPerm(ptttype.PERM_VIOLATELAW) {
+		if board.Level.HasUserPerm(ptttype.PERM_VIOLATELAW) {
+			return nil
+		} else {
+			return ErrViolateLaw
+		}
+	}
+
+	//除了"post"以外的其他權限要求
+	requiredLevel := board.Level & ^ptttype.PERM_POST
+	if requiredLevel == 0 {
+		return nil
+	}
+	if !user.UserLevel.HasUserPerm(requiredLevel) {
+		return ErrNotPermitted
 	}
 
 	return nil
