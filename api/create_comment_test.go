@@ -25,7 +25,7 @@ func TestCreateComment(t *testing.T) {
 		ArticleID: articleID,
 	}
 	expected0 := &CreateCommentResult{
-		Content: []byte("\x1b[1;37m\xb1\xc0 \x1b[33mCodingMan\x1b[m\x1b[33m: test123                                              \x1b[m 05/26 10:25\n"),
+		Content: []byte("\x1b[1;37m\xb1\xc0 \x1b[33mSYSOP\x1b[m\x1b[33m: test123                                                  \x1b[m 05/26 10:25\n"),
 	}
 
 	type args struct {
@@ -42,7 +42,7 @@ func TestCreateComment(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{
-			args:           args{remoteAddr: testIP, uuserID: "CodingMan", params: params0, path: path0},
+			args:           args{remoteAddr: testIP, uuserID: "SYSOP", params: params0, path: path0},
 			expectedResult: expected0,
 		},
 	}
