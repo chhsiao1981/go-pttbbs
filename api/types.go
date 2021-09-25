@@ -24,6 +24,6 @@ type EmailJwtClaim struct {
 	Context    string `json:"ctx"`
 }
 
-type errResult struct {
-	Msg string
+type ErrResult struct {
+	Msg string `json:"msg"`
 }

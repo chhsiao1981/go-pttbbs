@@ -36,6 +36,8 @@ var (
 	ErrNoRecord = errors.New("no record")
 
 	ErrInvalidFileHash = errors.New("invalid file hash")
+
+	ErrCaptcha = errors.New("unable to do captcha")
 )
 
 func FatalLockedUser(userID *ptttype.UserID_t) error {
