@@ -8,6 +8,7 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/cmbbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/types"
+	"github.com/Ptt-official-app/go-pttbbs/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,6 +17,8 @@ func setupTest(name string) {
 	types.SetIsTest("ptt")
 
 	ptttype.SetIsTest()
+
+	utils.SetIsTest()
 
 	cache.SetIsTest()
 
@@ -70,6 +73,8 @@ func teardownTest(name string) {
 	}()
 
 	defer ptttype.UnsetIsTest()
+
+	defer utils.UnsetIsTest()
 
 	defer cache.UnsetIsTest()
 

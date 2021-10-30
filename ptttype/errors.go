@@ -14,4 +14,6 @@ var (
 	ErrInvalidType          = errors.New("invalid type")
 
 	ErrInvalidAllowRejectEmailOp = errors.New("invalid allow-reject-email op")
+
+	ErrUseRemoteCaptcha = errors.New("not set USE_REMOTE_CAPTCHA")
 )

@@ -9,4 +9,14 @@ services:
     restart: always
     volumes:
       - ${BBSHOME}:/home/bbs
-      - ${ETC}:/etc/go-pttbbs
+      - ${ETC}:/etc
+  pttredis:
+    image: redis:6.0.9-alpine
+    restart: always
+  pttweb:
+    image: chhsiao1981/imagepttweb:v0.1.0
+    ports:
+      - "127.0.0.1:4568:4567"
+    volumes:
+      - ${ETC}:/etc
+    restart: always

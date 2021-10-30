@@ -155,7 +155,7 @@ func setBBSMName(bbsmname string) string {
 	if IS_BN_CCHESS_LOG_INFERRED {
 		BN_CCHESS_LOG_s = BBSMNAME + "CChess"
 	}
-	if IS_MONEYNAME_INFFERRED {
+	if IS_MONEYNAME_INFERRED {
 		MONEYNAME = BBSMNAME + "幣"
 	}
 

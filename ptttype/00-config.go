@@ -226,7 +226,7 @@ var (
 	USE_REG_CAPTCHA                 = false
 	USE_POST_CAPTCHA_FOR_NOREG      = false
 	USE_VOTE_CAPTCHA                = false
-	USE_REMOTE_CAPTCHA              = false
+	USE_REMOTE_CAPTCHA              = true
 	CAPTCHA_INSERT_SERVER_ADDR      = "127.0.0.1:80"
 	IS_CAPTCHA_INSERT_HOST_INFERRED = true
 	CAPTCHA_INSERT_HOST             = CAPTCHA_INSERT_SERVER_ADDR
@@ -262,8 +262,8 @@ var (
 	BBSMNAME2 = "Ｐtt"
 
 	/* 錢幣名，建議剛好 3 個字元。 詳見 sample/pttbbs.conf */
-	IS_MONEYNAME_INFFERRED = true
-	MONEYNAME              = BBSMNAME + "幣"
+	IS_MONEYNAME_INFERRED = true
+	MONEYNAME             = BBSMNAME + "幣"
 
 	/* AID 顯示的站台名稱。 若 IP 太長請另行定義。 */
 	IS_AID_HOSTNAME_INFERRED = true

@@ -39,6 +39,7 @@ var (
 
 	// read.go
 	ErrDeleteArticleFailed = errors.New("delete article failed")
+	ErrCaptcha = errors.New("unable to do captcha")
 )
 
 func FatalLockedUser(userID *ptttype.UserID_t) error {

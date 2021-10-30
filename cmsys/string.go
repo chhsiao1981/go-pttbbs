@@ -2,10 +2,12 @@ package cmsys
 
 import (
 	"bytes"
+	"crypto/rand"
 
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/types"
 	"github.com/Ptt-official-app/go-pttbbs/types/ansi"
+	"github.com/btcsuite/btcutil/base58"
 )
 
 func StringHashWithHashBits(theBytes []byte) Fnv32_t {
@@ -163,4 +165,21 @@ func DBCSNextStatus(c byte, prevStatus DBCSStatus_t) (newStatus DBCSStatus_t) {
 		return DBCS_LEADING
 	}
 	return DBCS_ASCII
+}
+
+//RandomTextCode
+//
+//https://github.com/ptt/pttbbs/blob/master/common/sys/string.c#L835
+//c-pttbbs version uses base58 without numbers. (base49)
+//Our version just uses base58 for simplicity.
+func RandomTextCode() (code string, err error) {
+	codeBytes := make([]byte, ptttype.CAPTCHA_CODE_LENGTH)
+
+	_, err = rand.Read(codeBytes)
+	if err != nil {
+		return "", err
+	}
+	code = base58.Encode(codeBytes)
+	code = code[:ptttype.CAPTCHA_CODE_LENGTH]
+	return code, nil
 }

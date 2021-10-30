@@ -8,6 +8,7 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/cmbbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/types"
+	"github.com/Ptt-official-app/go-pttbbs/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,6 +17,8 @@ var testIP = "127.0.0.1"
 func setupTest(name string) {
 	types.SetIsTest("api")
 	ptttype.SetIsTest()
+
+	utils.SetIsTest()
 
 	cache.SetIsTest()
 	cmbbs.SetIsTest()
@@ -52,6 +55,8 @@ func teardownTest(name string) {
 	defer time.Sleep(1 * time.Millisecond)
 
 	defer types.UnsetIsTest("api")
+
+	defer utils.UnsetIsTest()
 
 	defer ptttype.UnsetIsTest()
 

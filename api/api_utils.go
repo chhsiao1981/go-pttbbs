@@ -17,54 +17,54 @@ func processResult(c *gin.Context, result interface{}, err error) {
 		c.JSON(200, result)
 
 	case ErrInvalidHost:
-		c.JSON(400, &errResult{err.Error()})
+		c.JSON(400, &ErrResult{err.Error()})
 	case ErrInvalidRemoteAddr:
-		c.JSON(400, &errResult{err.Error()})
+		c.JSON(400, &ErrResult{err.Error()})
 
 	case ErrInvalidParams:
-		c.JSON(400, &errResult{err.Error()})
+		c.JSON(400, &ErrResult{err.Error()})
 	case ErrInvalidPath:
-		c.JSON(400, &errResult{err.Error()})
+		c.JSON(400, &ErrResult{err.Error()})
 
 	case bbs.ErrInvalidParams:
-		c.JSON(400, &errResult{err.Error()})
+		c.JSON(400, &ErrResult{err.Error()})
 
 	case ptttype.ErrUserIDAlreadyExists:
-		c.JSON(400, &errResult{err.Error()})
+		c.JSON(400, &ErrResult{err.Error()})
 
 	case ErrInvalidIDEmail:
-		c.JSON(400, &errResult{err.Error()})
+		c.JSON(400, &ErrResult{err.Error()})
 
 	// 401
 	case ErrInvalidToken:
-		c.JSON(401, &errResult{err.Error()})
+		c.JSON(401, &ErrResult{err.Error()})
 
 	case ErrInvalidToken:
-		c.JSON(401, &errResult{err.Error()})
+		c.JSON(401, &ErrResult{err.Error()})
 	case ErrLoginFailed:
-		c.JSON(401, &errResult{err.Error()})
+		c.JSON(401, &ErrResult{err.Error()})
 
 	// 403
 	case cache.ErrInvalidUID:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	case ErrInvalidUser:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	case ptttype.ErrInvalidUserID:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	case ptt.ErrNotPermitted:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	case ptt.ErrPermitNoPost:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	case ptt.ErrBanned:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	case ptt.ErrRestricted:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	case ptt.ErrViolateLaw:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	case bbs.ErrInvalidPermission:
-		c.JSON(403, &errResult{err.Error()})
+		c.JSON(403, &ErrResult{err.Error()})
 	default:
-		c.JSON(500, &errResult{err.Error()})
+		c.JSON(500, &ErrResult{err.Error()})
 	}
 }
 

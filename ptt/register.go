@@ -555,3 +555,15 @@ func isReservedUserID(userID *ptttype.UserID_t) bool {
 
 	return false
 }
+
+func DoRegisterCaptcha() (err error) {
+	if !ptttype.USE_REG_CAPTCHA {
+		return nil
+	}
+
+	if !ptttype.USE_REMOTE_CAPTCHA {
+		return ptttype.ErrUseRemoteCaptcha
+	}
+
+	return nil
+}
