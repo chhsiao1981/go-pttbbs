@@ -60,6 +60,9 @@ func TestNewSHM(t *testing.T) {
 				t.Errorf("NewSHM() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
+			t.Errorf("false")
+
 			Shm.Reset()
 
 			if !reflect.DeepEqual(Shm.Raw.Version, tt.wantVersion) {

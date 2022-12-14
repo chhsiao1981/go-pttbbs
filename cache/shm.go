@@ -10,6 +10,7 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/shm"
 	"github.com/Ptt-official-app/go-pttbbs/types"
 
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,6 +20,8 @@ type SHM struct {
 	Shmaddr unsafe.Pointer
 
 	Raw SHMRaw // dummy variable to get the offset and size of the shm-fields.
+
+	Ptr *SHMRaw
 }
 
 // NewSHM
@@ -63,6 +66,7 @@ func NewSHM(key types.Key_t, isUseHugeTlb bool, isCreate bool) error {
 		Shmid:   shmid,
 		IsNew:   isNew,
 		Shmaddr: shmaddr,
+		Ptr:     (*SHMRaw)(shmaddr),
 	}
 
 	if isNew {
@@ -70,26 +74,10 @@ func NewSHM(key types.Key_t, isUseHugeTlb bool, isCreate bool) error {
 		in_size := int32(SHM_RAW_SZ)
 		in_number := int32(0)
 		in_loaded := int32(0)
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.Version),
-			unsafe.Sizeof(Shm.Raw.Version),
-			unsafe.Pointer(&in_version),
-		)
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.Size),
-			unsafe.Sizeof(Shm.Raw.Size),
-			unsafe.Pointer(&in_size),
-		)
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.Number),
-			unsafe.Sizeof(Shm.Raw.Number),
-			unsafe.Pointer(&in_number),
-		)
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.Loaded),
-			unsafe.Sizeof(Shm.Raw.Loaded),
-			unsafe.Pointer(&in_loaded),
-		)
+		Shm.Ptr.Version = int32(in_version)
+		Shm.Ptr.Size = in_size
+		Shm.Ptr.Number = in_number
+		Shm.Ptr.Loaded = in_loaded
 	}
 
 	// version and size should be fixed.
@@ -109,12 +97,14 @@ func NewSHM(key types.Key_t, isUseHugeTlb bool, isCreate bool) error {
 	)
 
 	// verify version
+	logrus.Infof("cache.NewSHM: Raw.Version: %v SHM_VERSION: %v", Shm.Raw.Version, SHM_VERSION)
 	if Shm.Raw.Version != SHM_VERSION {
 		log.Errorf("cache.NewSHM: version not match: key: %v Shm.Raw.Version: %v SHM_VERSION: %v isCreate: %v isNew: %v", key, Shm.Raw.Version, SHM_VERSION, isCreate, isNew)
 		debug.PrintStack()
 		_ = CloseSHM()
 		return ErrShmVersion
 	}
+	logrus.Infof("cache.NewSHM: Raw.Size: %v SHM_RAW_SZ: %v", Shm.Raw.Size, SHM_RAW_SZ)
 	if Shm.Raw.Size != int32(SHM_RAW_SZ) {
 		log.Warnf("cache.NewSHM: size not match (version matched): key: %v Shm.Raw.Size: %v SHM_RAW_SZ: %v size: %v isCreate: %v isNew: %v", key, Shm.Raw.Size, SHM_RAW_SZ, size, isCreate, isNew)
 
