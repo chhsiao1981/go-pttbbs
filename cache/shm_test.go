@@ -61,9 +61,18 @@ func TestNewSHM(t *testing.T) {
 				return
 			}
 
-			t.Errorf("false")
-
 			Shm.Reset()
+
+			Shm.ReadAt(
+				unsafe.Offsetof(Shm.Raw.Version),
+				unsafe.Sizeof(Shm.Raw.Version),
+				unsafe.Pointer(&Shm.Raw.Version),
+			)
+			Shm.ReadAt(
+				unsafe.Offsetof(Shm.Raw.Size),
+				unsafe.Sizeof(Shm.Raw.Size),
+				unsafe.Pointer(&Shm.Raw.Size),
+			)
 
 			if !reflect.DeepEqual(Shm.Raw.Version, tt.wantVersion) {
 				t.Errorf("NewSHM() version: %v expected: %v", Shm.Raw.Version, tt.wantVersion)

@@ -195,7 +195,7 @@ func (s *SHM) Reset() {
 
 	const sz = SHM_RAW_SZ - uintptr(types.INT32_SZ*2)
 	ptrBytes := (*[sz]byte)(unsafe.Pointer(&EMPTY_SHM_RAW.Userid))
-	shmBytes := (*[SHM_RAW_SZ]byte)(unsafe.Pointer(s.Shm))
+	shmBytes := (*[SHM_RAW_SZ]byte)(unsafe.Pointer(&s.Shm.Userid))
 	copy(shmBytes[:], ptrBytes[:])
 }
 
