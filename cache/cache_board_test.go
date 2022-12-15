@@ -19,12 +19,8 @@ func TestGetBCache(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
-	boards := [3]ptttype.BoardHeaderRaw{testBoardHeader0, testBoardHeader1, testBoardHeader2}
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BCache),
-		unsafe.Sizeof(boards),
-		unsafe.Pointer(&boards),
-	)
+	boards := []ptttype.BoardHeaderRaw{testBoardHeader0, testBoardHeader1, testBoardHeader2}
+	copy(Shm.Shm.BCache[:], boards[:])
 
 	type args struct {
 		bidInCache ptttype.Bid
@@ -271,11 +267,7 @@ func TestGetBTotal(t *testing.T) {
 	bid1InCache := bid1.ToBidInStore()
 	total1 := int32(5)
 
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.Total)+types.INT32_SZ*uintptr(bid1InCache),
-		types.INT32_SZ,
-		unsafe.Pointer(&total1),
-	)
+	Shm.Shm.Total[bid1InCache] = total1
 
 	type args struct {
 		bid ptttype.Bid
@@ -1076,11 +1068,7 @@ func Test_buildBMCache(t *testing.T) {
 
 	_ = LoadUHash()
 
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BCache),
-		ptttype.BOARD_HEADER_RAW_SZ,
-		unsafe.Pointer(&testBoardHeader4),
-	)
+	Shm.Shm.BCache[0] = testBoardHeader4
 
 	expected0 := []ptttype.UID{1, 2, -1, -1}
 

@@ -193,10 +193,10 @@ func (s *SHM) Reset() {
 		return
 	}
 
-	offset := unsafe.Offsetof(s.Raw.Userid)
-	sz := SHM_RAW_SZ - uintptr(types.INT32_SZ*2)
-	ptr := unsafe.Pointer(&EMPTY_SHM_RAW.Userid)
-	shm.WriteAt(s.Shmaddr, int(offset), sz, ptr)
+	const sz = SHM_RAW_SZ - uintptr(types.INT32_SZ*2)
+	ptrBytes := (*[sz]byte)(unsafe.Pointer(&EMPTY_SHM_RAW.Userid))
+	shmBytes := (*[SHM_RAW_SZ]byte)(unsafe.Pointer(s.Shm))
+	copy(shmBytes[:], ptrBytes[:])
 }
 
 // ReadAt

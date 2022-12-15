@@ -12,11 +12,9 @@ import (
 //
 // XXX uid-in-cache = uid - 1
 func SetUMoney(uid ptttype.UID, money int32) (int32, error) {
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.Money)+types.INT32_SZ*uintptr(uid-1),
-		types.INT32_SZ,
-		unsafe.Pointer(&money),
-	)
+	uidInCache := uid.ToUIDInStore()
+	Shm.Shm.Money[uidInCache] = money
+
 	err := passwdUpdateMoney(uid, money)
 	if err != nil {
 		return money, err

@@ -190,18 +190,12 @@ func SearchUListPID(pid types.Pid_t) (ptttype.UtmpID, *ptttype.UserInfoRaw) {
 //
 // XXX skip utmp for now.
 func SetUtmpMode(uid ptttype.UID, mode ptttype.UserOpMode) (err error) {
-	/*
-		pid := uid.ToPid()
-		utmpID, _ := SearchUListPID(pid)
-		if utmpID == -1 {
-			return ErrNotFound
-		}
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.UInfo)+ptttype.USER_INFO_RAW_SZ*uintptr(utmpID)+ptttype.USER_INFO_MODE_OFFSET,
-			ptttype.USER_INFO_MODE_SZ,
-			unsafe.Pointer(&mode),
-		)
-	*/
+	pid := uid.ToPid()
+	utmpID, _ := SearchUListPID(pid)
+	if utmpID == -1 {
+		return ErrNotFound
+	}
+	Shm.Shm.UInfo[utmpID].Mode = mode
 
 	return nil
 }

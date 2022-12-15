@@ -13,18 +13,13 @@ func StatInc(stats ptttype.Stat) error {
 		return err
 	}
 
-	Shm.IncUint32(unsafe.Offsetof(Shm.Raw.Statistic) + types.UINT32_SZ*uintptr(stats))
+	Shm.Shm.Statistic[stats]++
 
 	return nil
 }
 
 func CleanStat() {
-	in := [ptttype.STAT_MAX]uint32{}
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.Statistic),
-		unsafe.Sizeof(Shm.Raw.Statistic),
-		unsafe.Pointer(&in),
-	)
+	Shm.Shm.Statistic = [ptttype.STAT_MAX]uint32{}
 }
 
 func ReadStat(stats ptttype.Stat) (uint32, error) {

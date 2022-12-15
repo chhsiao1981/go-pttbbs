@@ -50,12 +50,7 @@ func AttachCheckSHM() (err error) {
 		unsafe.Pointer(&btouchTime),
 	)
 	if btouchTime == 0 {
-		btouchTime = types.Time4(1)
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.BTouchTime),
-			types.TIME4_SZ,
-			unsafe.Pointer(&btouchTime),
-		)
+		Shm.Shm.BTouchTime = 1
 	}
 
 	// XXX line: 137 skip setting bcache because there is no direct-ptr for bcache for now.
@@ -68,28 +63,19 @@ func AttachCheckSHM() (err error) {
 		unsafe.Pointer(&ptouchTime),
 	)
 	if ptouchTime == 0 {
-		ptouchTime = 1
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.PTouchTime),
-			types.TIME4_SZ,
-			unsafe.Pointer(&ptouchTime),
-		)
+		Shm.Shm.PTouchTime = 1
 	}
 
 	// line: 142
 	ftouchTime := types.Time4(0)
 	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.PTouchTime),
+		unsafe.Offsetof(Shm.Raw.FTouchTime),
 		types.TIME4_SZ,
 		unsafe.Pointer(&ftouchTime),
 	)
 	if ftouchTime == 0 {
 		ftouchTime = 1
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.FTouchTime),
-			types.TIME4_SZ,
-			unsafe.Pointer(&ftouchTime),
-		)
+		Shm.Shm.FTouchTime = 1
 	}
 	return nil
 }

@@ -126,19 +126,10 @@ func SetBTotal(bid ptttype.Bid) (err error) {
 	nArticles := int32(stat.Size() / int64(ptttype.FILE_HEADER_RAW_SZ))
 
 	bidInCache := bid.ToBidInStore()
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.Total)+types.INT32_SZ*uintptr(bidInCache),
-		types.INT32_SZ,
-		unsafe.Pointer(&nArticles),
-	)
+	Shm.Shm.Total[bidInCache] = nArticles
 
-	zero := types.Time4(0)
 	if nArticles == 0 {
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.LastPostTime)+types.TIME4_SZ*uintptr(bidInCache),
-			types.TIME4_SZ,
-			unsafe.Pointer(&zero),
-		)
+		Shm.Shm.LastPostTime[bidInCache] = 0
 		return nil
 	}
 
@@ -156,11 +147,7 @@ func SetBTotal(bid ptttype.Bid) (err error) {
 		return err
 	}
 	if types.Cstrcmp(articleFilename[:], []byte(ptttype.FN_SAFEDEL)) == 0 {
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.LastPostTime)+types.TIME4_SZ*uintptr(bidInCache),
-			types.TIME4_SZ,
-			unsafe.Pointer(&zero),
-		)
+		Shm.Shm.LastPostTime[bidInCache] = 0
 		return nil
 	}
 
@@ -169,11 +156,7 @@ func SetBTotal(bid ptttype.Bid) (err error) {
 		return err
 	}
 
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.LastPostTime)+types.TIME4_SZ*uintptr(bidInCache),
-		types.TIME4_SZ,
-		unsafe.Pointer(&createTime),
-	)
+	Shm.Shm.LastPostTime[bidInCache] = createTime
 
 	return nil
 }
@@ -197,24 +180,15 @@ func SetBottomTotal(bid ptttype.Bid) error {
 	}
 
 	bidInCache := bid.ToBidInStore()
-	zero8 := uint8(0)
 	n := uint8(cmsys.GetNumRecords(bottomFilename, ptttype.FILE_HEADER_RAW_SZ))
 	if n > 5 {
 		_ = syscall.Unlink(bottomFilename)
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.NBottom)+types.UINT8_SZ*uintptr(bidInCache),
-			types.UINT8_SZ,
-			unsafe.Pointer(&zero8),
-		)
+		Shm.Shm.NBottom[bidInCache] = 0
 
 		return nil
 	}
 
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.NBottom)+types.UINT8_SZ*uintptr(bidInCache),
-		types.UINT8_SZ,
-		unsafe.Pointer(&n),
-	)
+	Shm.Shm.NBottom[bidInCache] = n
 
 	return nil
 }
@@ -324,11 +298,7 @@ func HbflReload(bidInCache ptttype.BidInStore) {
 
 	hbfl[0] = ptttype.UID(types.NowTS())
 
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.Hbfl)+hbflsz*uintptr(bidInCache),
-		hbflsz,
-		unsafe.Pointer(&hbfl),
-	)
+	copy(Shm.Shm.Hbfl[bidInCache][:], hbfl[:])
 }
 
 // NumBoards
@@ -374,19 +344,9 @@ func ReloadBCache() {
 }
 
 func reloadBCacheCore() {
-	busystate := int32(1)
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BBusyState),
-		types.INT32_SZ,
-		unsafe.Pointer(&busystate),
-	)
+	Shm.Shm.BBusyState = 1
 	defer func() {
-		busystate = 0
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.BBusyState),
-			types.INT32_SZ,
-			unsafe.Pointer(&busystate),
-		)
+		Shm.Shm.BBusyState = 0
 	}()
 
 	theBytes, err := reloadBCacheReadFile()
@@ -395,40 +355,20 @@ func reloadBCacheCore() {
 	}
 
 	const bcachesz = unsafe.Sizeof(Shm.Raw.BCache)
-	theSize := bcachesz
-	lenTheBytes := uintptr(len(theBytes))
-	if lenTheBytes < theSize {
-		theSize = lenTheBytes
+	bcacheBytes := (*[bcachesz]byte)(unsafe.Pointer(&Shm.Shm.BCache))
+	copy(bcacheBytes[:], theBytes)
+
+	theSize := uintptr(len(theBytes))
+	if bcachesz < theSize {
+		theSize = bcachesz
 	}
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BCache),
-		theSize,
-		unsafe.Pointer(&theBytes[0]),
-	)
+	Shm.Shm.BNumber = int32(theSize / ptttype.BOARD_HEADER_RAW_SZ)
 
-	bnumber := int32(theSize / ptttype.BOARD_HEADER_RAW_SZ)
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BNumber),
-		types.INT32_SZ,
-		unsafe.Pointer(&bnumber),
-	)
-
-	Shm.Memset(
-		unsafe.Offsetof(Shm.Raw.LastPostTime),
-		byte(0),
-		uintptr(ptttype.MAX_BOARD)*types.TIME4_SZ,
-	)
-
-	Shm.Memset(
-		unsafe.Offsetof(Shm.Raw.Total),
-		byte(0),
-		uintptr(ptttype.MAX_BOARD)*types.INT32_SZ,
-	)
-
-	Shm.InnerSetInt32(
-		unsafe.Offsetof(Shm.Raw.BTouchTime),
-		unsafe.Offsetof(Shm.Raw.BUptime),
-	)
+	for i := 0; i < ptttype.MAX_BOARD; i++ {
+		Shm.Shm.LastPostTime[i] = 0
+		Shm.Shm.Total[i] = 0
+	}
+	Shm.Shm.BTouchTime = Shm.Shm.BUptime
 }
 
 // SortBCache
@@ -448,19 +388,9 @@ func SortBCache() {
 		return
 	}
 
-	*pbusystate = 1
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BBusyState),
-		types.INT32_SZ,
-		pbusystateptr,
-	)
+	Shm.Shm.BBusyState = 1
 	defer func() {
-		*pbusystate = 0
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.BBusyState),
-			types.INT32_SZ,
-			pbusystateptr,
-		)
+		Shm.Shm.BBusyState = 0
 	}()
 
 	// init is in shm.c
@@ -469,16 +399,11 @@ func SortBCache() {
 
 	// for-loop cleaning first-child
 	// init vars
-	val := [ptttype.BSORT_BY_MAX]ptttype.Bid{}
 	bnumber := Shm.GetBNumber()
-
-	const valsz = unsafe.Sizeof(val)
 	for i := int32(0); i < bnumber; i++ {
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.BCache)+ptttype.BOARD_HEADER_RAW_SZ*uintptr(i)+ptttype.BOARD_HEADER_FIRST_CHILD_OFFSET,
-			valsz,
-			unsafe.Pointer(&val),
-		)
+		for j := 0; j < int(ptttype.BSORT_BY_MAX); j++ {
+			Shm.Shm.BCache[i].FirstChild[j] = 0
+		}
 	}
 }
 
@@ -505,12 +430,7 @@ func reloadCacheLoadBottom() {
 			n = 5
 		}
 
-		n_uint8 := uint8(n)
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.NBottom)+types.UINT8_SZ*i,
-			types.UINT8_SZ,
-			unsafe.Pointer(&n_uint8),
-		)
+		Shm.Shm.NBottom[i] = uint8(n)
 	}
 }
 
@@ -1060,18 +980,9 @@ func ResetBoard(bid ptttype.Bid) (err error) {
 		return ErrBusy
 	}
 
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BusyStateB)+types.TIME4_SZ*uintptr(bidInCache),
-		types.TIME4_SZ,
-		unsafe.Pointer(&nowTS),
-	)
+	Shm.Shm.BusyStateB[bidInCache] = nowTS
 	defer func() {
-		zeroTS := types.Time4(0)
-		Shm.WriteAt(
-			unsafe.Offsetof(Shm.Raw.BusyStateB)+types.TIME4_SZ*uintptr(bidInCache),
-			types.TIME4_SZ,
-			unsafe.Pointer(&zeroTS),
-		)
+		Shm.Shm.BusyStateB[bidInCache] = 0
 	}()
 
 	file, err := os.Open(ptttype.FN_BOARD)
@@ -1080,7 +991,7 @@ func ResetBoard(bid ptttype.Bid) (err error) {
 	}
 	defer file.Close()
 
-	board := &ptttype.BoardHeaderRaw{}
+	board := &Shm.Shm.BCache[bidInCache]
 	_, err = file.Seek(int64(bidInCache)*int64(ptttype.BOARD_HEADER_RAW_SZ), 0)
 	if err != nil {
 		return err
@@ -1089,12 +1000,6 @@ func ResetBoard(bid ptttype.Bid) (err error) {
 	if err != nil {
 		return err
 	}
-
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BCache)+ptttype.BOARD_HEADER_RAW_SZ*uintptr(bidInCache),
-		ptttype.BOARD_HEADER_RAW_SZ,
-		unsafe.Pointer(board),
-	)
 
 	buildBMCache(bid)
 
@@ -1121,30 +1026,15 @@ func buildBMCache(bid ptttype.Bid) {
 	}
 
 	const BMCACHE_SZ = unsafe.Sizeof(Shm.Raw.BMCache[0])
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BMCache)+BMCACHE_SZ*uintptr(bidInCache),
-		BMCACHE_SZ,
-		unsafe.Pointer(&resetUids),
-	)
+	Shm.Shm.BMCache[bidInCache] = resetUids
 
 	// set uids
 	uids := ParseBMList(BMs)
-
-	if len(uids) == 0 {
-		return
-	}
-
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.BMCache)+BMCACHE_SZ*uintptr(bidInCache),
-		ptttype.UID_SZ*uintptr(ptttype.MAX_BMs),
-		unsafe.Pointer(uids),
-	)
+	Shm.Shm.BMCache[bidInCache] = *uids
 }
 
 func AddbrdTouchCache() (bid ptttype.Bid, err error) {
-	Shm.IncUint32(
-		unsafe.Offsetof(Shm.Raw.BNumber),
-	)
+	Shm.Shm.BNumber++
 
 	nBoards := NumBoards()
 
@@ -1165,11 +1055,7 @@ func SetLastPosttime(bid ptttype.Bid, nowTS types.Time4) (err error) {
 	}
 
 	bidInCache := bid.ToBidInStore()
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.LastPostTime)+types.TIME4_SZ*uintptr(bidInCache),
-		types.TIME4_SZ,
-		unsafe.Pointer(&nowTS),
-	)
+	Shm.Shm.LastPostTime[bidInCache] = nowTS
 
 	return nil
 }
@@ -1203,12 +1089,7 @@ func TouchBPostNum(bid ptttype.Bid, delta int32) (err error) {
 	)
 
 	total += delta
-
-	Shm.WriteAt(
-		unsafe.Offsetof(Shm.Raw.Total)+types.INT32_SZ*uintptr(bidInCache),
-		types.INT32_SZ,
-		unsafe.Pointer(&total),
-	)
+	Shm.Shm.Total[bidInCache] = total
 
 	return nil
 }
@@ -1276,56 +1157,28 @@ func ResolveBoardGroup(gid ptttype.Bid, bsortBy ptttype.BSortBy) (err error) {
 
 func setBoardFirstChild(bid ptttype.Bid, bsortBy ptttype.BSortBy, childBid ptttype.Bid) (err error) {
 	bidInCache := bid.ToBidInStore()
-
-	const bcacheOffset = unsafe.Offsetof(Shm.Raw.BCache)
-
-	Shm.WriteAt(
-		bcacheOffset+ptttype.BOARD_HEADER_RAW_SZ*uintptr(bidInCache)+ptttype.BOARD_HEADER_FIRST_CHILD_OFFSET+ptttype.BID_SZ*uintptr(bsortBy),
-		ptttype.BID_SZ,
-		unsafe.Pointer(&childBid),
-	)
+	Shm.Shm.BCache[bidInCache].FirstChild[bsortBy] = childBid
 
 	return nil
 }
 
 func setBoardNextChild(bid ptttype.Bid, bsortBy ptttype.BSortBy, childBid ptttype.Bid) (err error) {
 	bidInCache := bid.ToBidInStore()
-
-	const bcacheOffset = unsafe.Offsetof(Shm.Raw.BCache)
-
-	Shm.WriteAt(
-		bcacheOffset+ptttype.BOARD_HEADER_RAW_SZ*uintptr(bidInCache)+ptttype.BOARD_HEADER_NEXT_OFFSET+ptttype.BID_SZ*uintptr(bsortBy),
-		ptttype.BID_SZ,
-		unsafe.Pointer(&childBid),
-	)
+	Shm.Shm.BCache[bidInCache].Next[bsortBy] = childBid
 
 	return nil
 }
 
 func setBoardParent(bid ptttype.Bid, parentBid ptttype.Bid) (err error) {
 	bidInCache := bid.ToBidInStore()
-
-	const bcacheOffset = unsafe.Offsetof(Shm.Raw.BCache)
-
-	Shm.WriteAt(
-		bcacheOffset+ptttype.BOARD_HEADER_RAW_SZ*uintptr(bidInCache)+ptttype.BOARD_HEADER_PARENT_OFFSET,
-		ptttype.BID_SZ,
-		unsafe.Pointer(&parentBid),
-	)
+	Shm.Shm.BCache[bidInCache].Parent = parentBid
 
 	return nil
 }
 
 func SetBoardChildCount(bid ptttype.Bid, count int32) (err error) {
 	bidInCache := bid.ToBidInStore()
-
-	const bcacheOffset = unsafe.Offsetof(Shm.Raw.BCache)
-
-	Shm.WriteAt(
-		bcacheOffset+ptttype.BOARD_HEADER_RAW_SZ*uintptr(bidInCache)+ptttype.BOARD_HEADER_CHILD_COUNT_OFFSET,
-		types.INT32_SZ,
-		unsafe.Pointer(&count),
-	)
+	Shm.Shm.BCache[bidInCache].ChildCount = count
 
 	return nil
 }
