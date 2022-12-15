@@ -97,7 +97,7 @@ func NewSHM(key types.Key_t, isUseHugeTlb bool, isCreate bool) error {
 	)
 
 	// verify version
-	logrus.Infof("cache.NewSHM: Raw.Version: %v SHM_VERSION: %v", Shm.Raw.Version, SHM_VERSION)
+	logrus.Infof("cache.NewSHM: shmid: %v isNew: %v shmaddr: %v Raw.Version: %v SHM_VERSION: %v", shmid, isNew, shmaddr, Shm.Raw.Version, SHM_VERSION)
 	if Shm.Raw.Version != SHM_VERSION {
 		log.Errorf("cache.NewSHM: version not match: key: %v Shm.Raw.Version: %v SHM_VERSION: %v isCreate: %v isNew: %v", key, Shm.Raw.Version, SHM_VERSION, isCreate, isNew)
 		debug.PrintStack()
