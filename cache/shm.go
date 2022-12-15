@@ -21,7 +21,7 @@ type SHM struct {
 
 	Raw SHMRaw // dummy variable to get the offset and size of the shm-fields.
 
-	Ptr *SHMRaw
+	Shm *SHMRaw
 }
 
 // NewSHM
@@ -66,7 +66,7 @@ func NewSHM(key types.Key_t, isUseHugeTlb bool, isCreate bool) error {
 		Shmid:   shmid,
 		IsNew:   isNew,
 		Shmaddr: shmaddr,
-		Ptr:     (*SHMRaw)(shmaddr),
+		Shm:     (*SHMRaw)(shmaddr),
 	}
 
 	if isNew {
@@ -74,10 +74,10 @@ func NewSHM(key types.Key_t, isUseHugeTlb bool, isCreate bool) error {
 		in_size := int32(SHM_RAW_SZ)
 		in_number := int32(0)
 		in_loaded := int32(0)
-		Shm.Ptr.Version = int32(in_version)
-		Shm.Ptr.Size = in_size
-		Shm.Ptr.Number = in_number
-		Shm.Ptr.Loaded = in_loaded
+		Shm.Shm.Version = int32(in_version)
+		Shm.Shm.Size = in_size
+		Shm.Shm.Number = in_number
+		Shm.Shm.Loaded = in_loaded
 	}
 
 	// version and size should be fixed.
@@ -192,11 +192,11 @@ func (s *SHM) Reset() {
 	if !IsTest {
 		return
 	}
-	s.WriteAt(
-		unsafe.Offsetof(s.Raw.Userid),
-		SHM_RAW_SZ-uintptr(types.INT32_SZ*2),
-		unsafe.Pointer(&EMPTY_SHM_RAW.Userid),
-	)
+
+	offset := unsafe.Offsetof(s.Raw.Userid)
+	sz := SHM_RAW_SZ - uintptr(types.INT32_SZ*2)
+	ptr := unsafe.Pointer(&EMPTY_SHM_RAW.Userid)
+	shm.WriteAt(s.Shmaddr, int(offset), sz, ptr)
 }
 
 // ReadAt
@@ -227,9 +227,11 @@ func (s *SHM) ReadAt(offsetOfSHMRawComponent uintptr, size uintptr, outptr unsaf
 //	size: size of the variable
 //	      [!!!]If we are reading from the array, make sure that have unit-size * n in the size.
 //	inptr: the ptr of the object to write.
+/*
 func (s *SHM) WriteAt(offsetOfSHMRawComponent uintptr, size uintptr, inptr unsafe.Pointer) {
 	shm.WriteAt(s.Shmaddr, int(offsetOfSHMRawComponent), size, inptr)
 }
+*/
 
 func (s *SHM) SetOrUint32(offsetOfSHMRawComponent uintptr, flag uint32) {
 	shm.SetOrUint32(s.Shmaddr, int(offsetOfSHMRawComponent), flag)
@@ -300,19 +302,8 @@ func (s *SHM) CheckMaxUser() {
 	)
 
 	if maxuser < utmpnumber {
-		*maxuser_p = utmpnumber
-		s.WriteAt(
-			unsafe.Offsetof(s.Raw.MaxUser),
-			types.INT32_SZ,
-			maxuser_ptr,
-		)
-
 		nowTS := types.NowTS()
-
-		s.WriteAt(
-			unsafe.Offsetof(s.Raw.MaxTime),
-			types.TIME4_SZ,
-			unsafe.Pointer(&nowTS),
-		)
+		s.Shm.MaxUser = utmpnumber
+		s.Shm.MaxTime = nowTS
 	}
 }
