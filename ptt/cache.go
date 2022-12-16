@@ -112,38 +112,18 @@ func getNewUtmpEnt(uinfo *ptttype.UserInfoRaw) (utmpID ptttype.UtmpID, err error
 		// XXX c-pttbbs does not care the race-condition here.
 		// XXX we may not do anything with utmpID though.
 		if pid == uinfo.Pid {
-			cache.Shm.WriteAt(
-				unsafe.Offsetof(cache.Shm.Raw.UInfo)+uintptr(p)*ptttype.USER_INFO_RAW_SZ,
-				ptttype.USER_INFO_RAW_SZ,
-				unsafe.Pointer(uinfo),
-			)
-
+			cache.Shm.Shm.UInfo[p] = *uinfo
 			// https://github.com/ptt/pttbbs/blob/master/mbbsd/mbbsd.c#L998
-			one := uint8(1)
-			cache.Shm.WriteAt(
-				unsafe.Offsetof(cache.Shm.Raw.UTMPNeedSort),
-				types.UINT8_SZ,
-				unsafe.Pointer(&one),
-			)
+			cache.Shm.Shm.UTMPNeedSort = 1
 
 			return ptttype.UtmpID(p), nil
 		}
 
 		// new pid
 		if pid == 0 {
-			cache.Shm.WriteAt(
-				unsafe.Offsetof(cache.Shm.Raw.UInfo)+uintptr(p)*ptttype.USER_INFO_RAW_SZ,
-				ptttype.USER_INFO_RAW_SZ,
-				unsafe.Pointer(uinfo),
-			)
-
+			cache.Shm.Shm.UInfo[p] = *uinfo
 			// https://github.com/ptt/pttbbs/blob/master/mbbsd/mbbsd.c#L998
-			one := uint8(1)
-			cache.Shm.WriteAt(
-				unsafe.Offsetof(cache.Shm.Raw.UTMPNeedSort),
-				types.UINT8_SZ,
-				unsafe.Pointer(&one),
-			)
+			cache.Shm.Shm.UTMPNeedSort = 1
 
 			return ptttype.UtmpID(p), nil
 		}

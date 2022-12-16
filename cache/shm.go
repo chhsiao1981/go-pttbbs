@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"reflect"
 	"runtime/debug"
+	"time"
 	"unsafe"
 
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
@@ -164,6 +165,8 @@ func CloseSHM() error {
 	}
 
 	Shm = nil
+
+	time.Sleep(3 * time.Millisecond)
 
 	log.Infof("cache.CloseSHM: done")
 

@@ -249,6 +249,12 @@ func AddCooldownTime(uid ptttype.UID, minutes int) (err error) {
 	return nil
 }
 
+func SetCooldownTime(uid ptttype.UID, cooldownTime types.Time4) (err error) {
+	uidInCache := uid.ToUIDInStore()
+	Shm.Shm.CooldownTime[uidInCache] = cooldownTime
+	return nil
+}
+
 // PosttimesOf
 // https://github.com/ptt/pttbbs/blob/master/include/cmbbs.h#L98
 func PosttimesOf(uid ptttype.UID) (posttimes types.Time4) {
