@@ -2,6 +2,7 @@
 
 char *_BCACHEPTR;
 
+/*
 void readwrapper(void *outptr, void *shmaddr, int offset, unsigned long n) {
   unsigned char *src = (unsigned char *)shmaddr + offset;
   memcpy(outptr, src, n);
@@ -11,6 +12,7 @@ void writewrapper(void *shmaddr, int offset, void *inptr, unsigned long n) {
   unsigned char *dst = (unsigned char *)shmaddr + offset;
   memcpy(dst, inptr, n);
 }
+*/
 
 /*
 void set_or_uint32wrapper(void *shmaddr, int offset, unsigned int flag) {

@@ -3,7 +3,6 @@ package cache
 import (
 	"io"
 	"os"
-	"unsafe"
 
 	"github.com/Ptt-official-app/go-pttbbs/cmsys"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
@@ -20,19 +19,8 @@ func LoadUHash() (err error) {
 	}
 
 	// line: 58
-	number := int32(0)
-	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.Number),
-		unsafe.Sizeof(Shm.Raw.Number),
-		unsafe.Pointer(&number),
-	)
-
-	loaded := int32(0)
-	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.Loaded),
-		unsafe.Sizeof(Shm.Raw.Loaded),
-		unsafe.Pointer(&loaded),
-	)
+	number := Shm.Shm.Number
+	loaded := Shm.Shm.Loaded
 
 	// XXX in case it's not assumed zero, this becomes a race...
 	if number == 0 && loaded == 0 {
@@ -118,15 +106,7 @@ func userecRawAddToUHash(uidInCache ptttype.UIDInStore, userecRaw *ptttype.Usere
 
 	h := cmsys.StringHashWithHashBits(userecRaw.UserID[:])
 
-	shmUserID := ptttype.UserID_t{}
-	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.Userid)+ptttype.USER_ID_SZ*uintptr(uidInCache),
-		ptttype.USER_ID_SZ,
-		unsafe.Pointer(&shmUserID),
-	)
-
-	offsetNextInHash := unsafe.Offsetof(Shm.Raw.NextInHash)
-
+	shmUserID := &Shm.Shm.Userid[uidInCache]
 	if !isOnfly || types.Cstrcmp(userecRaw.UserID[:], shmUserID[:]) != 0 {
 		Shm.Shm.Userid[uidInCache] = userecRaw.UserID
 		Shm.Shm.Money[uidInCache] = userecRaw.Money
@@ -136,16 +116,9 @@ func userecRawAddToUHash(uidInCache ptttype.UIDInStore, userecRaw *ptttype.Usere
 	}
 
 	p := h
-	val := ptttype.UIDInStore(0)
-	offsetHashHead := unsafe.Offsetof(Shm.Raw.HashHead)
+	val := Shm.Shm.HashHead[p]
 	// offsetNextInHash := unsafe.Offsetof(Shm.Raw.NextInHash)
 	isFirst := true
-
-	Shm.ReadAt(
-		offsetHashHead+types.INT32_SZ*uintptr(p),
-		types.INT32_SZ,
-		unsafe.Pointer(&val),
-	)
 
 	l := 0
 	for val >= 0 && val < ptttype.MAX_USERS {
@@ -158,11 +131,7 @@ func userecRawAddToUHash(uidInCache ptttype.UIDInStore, userecRaw *ptttype.Usere
 		// 1. setting p as val
 		// 2. get val from next_in_hash[p]
 		p = cmsys.Fnv32_t(val)
-		Shm.ReadAt(
-			offsetNextInHash+types.INT32_SZ*uintptr(p),
-			types.INT32_SZ,
-			unsafe.Pointer(&val),
-		)
+		val = Shm.Shm.NextInHash[p]
 
 		isFirst = false
 	}
@@ -200,28 +169,17 @@ func checkHash(h cmsys.Fnv32_t) {
 
 	// line: 71
 	p := h
-	val := ptttype.UIDInStore(0)
-	pval := &val
-	valptr := unsafe.Pointer(pval)
-	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.HashHead)+types.INT32_SZ*uintptr(p),
-		types.INT32_SZ,
-		valptr,
-	)
+	val := Shm.Shm.HashHead[p]
 
 	// line: 72
 	isFirst := true
-
-	//offsetHashHead := unsafe.Offsetof(Shm.Raw.HashHead)
-	offsetNextInHash := unsafe.Offsetof(Shm.Raw.NextInHash)
-
-	userID := ptttype.UserID_t{}
+	userID := (*ptttype.UserID_t)(nil)
 	deep := 0
 	for val != -1 {
 		// check invalid pointer-val, set as -1  line: 74
 		if val < -1 || val >= ptttype.MAX_USERS {
 			log.Warnf("uhash_loader.checkHash: val invalid: h: %v p: %v val: %v isHead: %v", h, p, val, isFirst)
-			*pval = -1
+			val = -1
 			if isFirst {
 				Shm.Shm.HashHead[p] = -1
 			} else {
@@ -231,12 +189,7 @@ func checkHash(h cmsys.Fnv32_t) {
 		}
 
 		// get user-id: line: 75
-		Shm.ReadAt(
-			unsafe.Offsetof(Shm.Raw.Userid)+ptttype.USER_ID_SZ*uintptr(val),
-			ptttype.USER_ID_SZ,
-			unsafe.Pointer(&userID),
-		)
-
+		userID = &Shm.Shm.Userid[val]
 		userIDHash := cmsys.StringHashWithHashBits(userID[:])
 
 		// check hash as expected line: 76
@@ -244,17 +197,12 @@ func checkHash(h cmsys.Fnv32_t) {
 			// XXX
 			// the result of the userID does not fit the h (broken?).
 			// XXX uhash_loader is used only 1-time when starting the service.
-			next := ptttype.UIDInStore(0)
+			next := Shm.Shm.NextInHash[val]
 
 			// get next from *p (val)
-			Shm.ReadAt(
-				offsetNextInHash+types.INT32_SZ*uintptr(val),
-				types.INT32_SZ,
-				unsafe.Pointer(&next),
-			)
 			log.Warnf("userID hash is not in the corresponding idx (to remove) (%v): userID: %v userIDHash: %v h: %v next: %v", deep, types.CstrToString(userID[:]), userIDHash, h, next)
 			// remove current by setting current as the next, hopefully the next user can fit the userIDHash.
-			*pval = next
+			val = next
 			if isFirst {
 				Shm.Shm.HashHead[p] = next
 			} else {
@@ -264,11 +212,7 @@ func checkHash(h cmsys.Fnv32_t) {
 			// 1. p as val (pointer in NextInHash)
 			// 2. update val as NextInHash[p]
 			p = cmsys.Fnv32_t(val)
-			Shm.ReadAt(
-				offsetNextInHash+types.INT32_SZ*uintptr(p),
-				types.INT32_SZ,
-				unsafe.Pointer(&val),
-			)
+			val = Shm.Shm.NextInHash[p]
 			isFirst = false
 		}
 

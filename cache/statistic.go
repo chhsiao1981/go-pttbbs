@@ -1,10 +1,7 @@
 package cache
 
 import (
-	"unsafe"
-
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
-	"github.com/Ptt-official-app/go-pttbbs/types"
 )
 
 func StatInc(stats ptttype.Stat) error {
@@ -28,14 +25,7 @@ func ReadStat(stats ptttype.Stat) (uint32, error) {
 		return 0, err
 	}
 
-	out := uint32(0)
-	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.Statistic)+types.UINT32_SZ*uintptr(stats),
-		types.UINT32_SZ,
-		unsafe.Pointer(&out),
-	)
-
-	return out, nil
+	return Shm.Shm.Statistic[stats], nil
 }
 
 func validateStats(stats ptttype.Stat) error {

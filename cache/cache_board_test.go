@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"sync"
 	"testing"
-	"unsafe"
 
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
@@ -179,23 +178,13 @@ func TestReloadBCache(t *testing.T) {
 
 			ReloadBCache()
 
-			nBoard := int32(0)
-			Shm.ReadAt(
-				unsafe.Offsetof(Shm.Raw.BNumber),
-				types.INT32_SZ,
-				unsafe.Pointer(&nBoard),
-			)
+			nBoard := Shm.Shm.BNumber
 
 			if !reflect.DeepEqual(nBoard, tt.expectedNBoard) {
 				t.Errorf("ReloadBCache() = %v, want %v", nBoard, tt.expectedNBoard)
 			}
 
-			bsorted := [ptttype.BSORT_BY_MAX][ptttype.MAX_BOARD]ptttype.BidInStore{}
-			Shm.ReadAt(
-				unsafe.Offsetof(Shm.Raw.BSorted),
-				unsafe.Sizeof(bsorted),
-				unsafe.Pointer(&bsorted),
-			)
+			bsorted := &Shm.Shm.BSorted
 
 			for idx := int32(0); idx < nBoard; idx++ {
 				board, _ := GetBCache(ptttype.Bid(idx + 1))
@@ -242,12 +231,7 @@ func Test_reloadCacheLoadBottom(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer wg.Done()
 			reloadCacheLoadBottom()
-			nBottom := uint8(0)
-			Shm.ReadAt(
-				unsafe.Offsetof(Shm.Raw.NBottom)+unsafe.Sizeof(nBottom)*9,
-				unsafe.Sizeof(nBottom),
-				unsafe.Pointer(&nBottom),
-			)
+			nBottom := Shm.Shm.NBottom[9]
 
 			if nBottom != tt.expected {
 				t.Errorf("nBottom: %v want: %v", nBottom, tt.expected)
@@ -335,12 +319,7 @@ func TestSetBTotal(t *testing.T) {
 			}
 
 			bidInCache := tt.args.bid.ToBidInStore()
-			lastPostTime := types.Time4(0)
-			Shm.ReadAt(
-				unsafe.Offsetof(Shm.Raw.LastPostTime)+types.TIME4_SZ*uintptr(bidInCache),
-				types.TIME4_SZ,
-				unsafe.Pointer(&lastPostTime),
-			)
+			lastPostTime := Shm.Shm.LastPostTime[bidInCache]
 			if lastPostTime != tt.expectedLastPostTime {
 				t.Errorf("SetBTotal: lastPostTime: %v want: %v", lastPostTime, tt.expectedLastPostTime)
 			}
@@ -381,14 +360,7 @@ func TestSetBottomTotal(t *testing.T) {
 			}
 
 			bidInCache := tt.args.bid.ToBidInStore()
-			total := uint8(0)
-			const uint8sz = unsafe.Sizeof(total)
-
-			Shm.ReadAt(
-				unsafe.Offsetof(Shm.Raw.NBottom)+uint8sz*uintptr(bidInCache),
-				uint8sz,
-				unsafe.Pointer(&total),
-			)
+			total := Shm.Shm.NBottom[bidInCache]
 			if total != tt.expectedTotal {
 				t.Errorf("SetBottomTotal: total: %v want: %v", total, tt.expectedTotal)
 			}
@@ -1094,16 +1066,8 @@ func Test_buildBMCache(t *testing.T) {
 			defer wg.Done()
 			buildBMCache(tt.args.bid)
 
-			got := [4]ptttype.UID{0, 0, 0, 0}
-
-			const BMCACHE_SZ = unsafe.Sizeof(Shm.Raw.BMCache[0])
 			bidInStore := tt.args.bid.ToBidInStore()
-
-			Shm.ReadAt(
-				unsafe.Offsetof(Shm.Raw.BMCache)+BMCACHE_SZ*uintptr(bidInStore),
-				BMCACHE_SZ,
-				unsafe.Pointer(&got),
-			)
+			got := &Shm.Shm.BMCache[bidInStore]
 
 			testutil.TDeepEqual(t, "got", got[:], tt.expected)
 		})

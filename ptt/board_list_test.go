@@ -19,22 +19,12 @@ func TestLoadGeneralBoards(t *testing.T) {
 
 	cache.ReloadBCache()
 
-	bsorted := [12]ptttype.BidInStore{}
-	cache.Shm.ReadAt(
-		unsafe.Offsetof(cache.Shm.Raw.BSorted),
-		unsafe.Sizeof(bsorted),
-		unsafe.Pointer(&bsorted),
-	)
-
+	bsorted := &cache.Shm.Shm.BSorted[ptttype.BSORT_BY_NAME]
 	logrus.Infof("bsorted (by-name): %v", bsorted)
+
 	const bsort0sz = unsafe.Sizeof(cache.Shm.Raw.BSorted[0])
 
-	cache.Shm.ReadAt(
-		unsafe.Offsetof(cache.Shm.Raw.BSorted)+bsort0sz*uintptr(ptttype.BSORT_BY_CLASS),
-		unsafe.Sizeof(bsorted),
-		unsafe.Pointer(&bsorted),
-	)
-
+	bsorted = &cache.Shm.Shm.BSorted[ptttype.BSORT_BY_CLASS]
 	logrus.Infof("bsorted (by-class): %v", bsorted)
 
 	type args struct {
@@ -164,13 +154,6 @@ func TestLoadBoardSummary(t *testing.T) {
 	defer teardownTest(t.Name())
 
 	cache.ReloadBCache()
-
-	bsorted := [12]ptttype.BidInStore{}
-	cache.Shm.ReadAt(
-		unsafe.Offsetof(cache.Shm.Raw.BSorted),
-		unsafe.Sizeof(bsorted),
-		unsafe.Pointer(&bsorted),
-	)
 
 	type args struct {
 		user *ptttype.UserecRaw

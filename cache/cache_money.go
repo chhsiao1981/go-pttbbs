@@ -1,10 +1,7 @@
 package cache
 
 import (
-	"unsafe"
-
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
-	"github.com/Ptt-official-app/go-pttbbs/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -43,11 +40,5 @@ func DeUMoney(uid ptttype.UID, money int32) (int32, error) {
 
 func MoneyOf(uid ptttype.UID) (money int32) {
 	uidInCache := uid.ToUIDInStore()
-	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.Money)+types.INT32_SZ*uintptr(uidInCache),
-		types.INT32_SZ,
-		unsafe.Pointer(&money),
-	)
-
-	return money
+	return Shm.Shm.Money[uidInCache]
 }

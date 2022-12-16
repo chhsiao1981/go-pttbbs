@@ -83,16 +83,8 @@ func NewSHM(key types.Key_t, isUseHugeTlb bool, isCreate bool) error {
 	}
 
 	// version and size should be fixed.
-	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.Version),
-		unsafe.Sizeof(Shm.Raw.Version),
-		unsafe.Pointer(&Shm.Raw.Version),
-	)
-	Shm.ReadAt(
-		unsafe.Offsetof(Shm.Raw.Size),
-		unsafe.Sizeof(Shm.Raw.Size),
-		unsafe.Pointer(&Shm.Raw.Size),
-	)
+	Shm.Raw.Version = Shm.Shm.Version
+	Shm.Raw.Size = Shm.Shm.Size
 
 	// verify version
 	logrus.Infof("cache.NewSHM: shmid: %v isNew: %v shmaddr: %v Raw.Version: %v SHM_VERSION: %v", shmid, isNew, shmaddr, Shm.Raw.Version, SHM_VERSION)
@@ -211,9 +203,11 @@ func (s *SHM) Reset() {
 //	size: size of the variable, usually can be referred from SHMRaw
 //	      [!!!]If we are reading from the array, make sure that have unit-size * n in the size.
 //	outptr: the ptr of the object to read.
+/*
 func (s *SHM) ReadAt(offsetOfSHMRawComponent uintptr, size uintptr, outptr unsafe.Pointer) {
 	shm.ReadAt(s.Shmaddr, int(offsetOfSHMRawComponent), size, outptr)
 }
+*/
 
 // WriteAt
 //
@@ -258,12 +252,7 @@ func (s *SHM) InnerSetInt32(offsetSrc uintptr, offsetDst uintptr) {
 */
 
 func (s *SHM) GetBNumber() (bnumber int32) {
-	s.ReadAt(
-		unsafe.Offsetof(s.Raw.BNumber),
-		types.TIME4_SZ,
-		unsafe.Pointer(&bnumber),
-	)
-	return
+	return s.Shm.BNumber
 }
 
 func (s *SHM) QsortCmpBoardName() {
@@ -283,25 +272,8 @@ func (s *SHM) QsortCmpBoardClass() {
 }
 
 func (s *SHM) CheckMaxUser() {
-	utmpnumber := int32(0)
-	utmpnumber_p := &utmpnumber
-	utmpnumber_ptr := unsafe.Pointer(utmpnumber_p)
-	maxuser := int32(0)
-	maxuser_p := &maxuser
-	maxuser_ptr := unsafe.Pointer(maxuser_p)
-
-	s.ReadAt(
-		unsafe.Offsetof(s.Raw.UTMPNumber),
-		types.INT32_SZ,
-		utmpnumber_ptr,
-	)
-
-	s.ReadAt(
-		unsafe.Offsetof(s.Raw.MaxUser),
-		types.INT32_SZ,
-		maxuser_ptr,
-	)
-
+	utmpnumber := s.Shm.UTMPNumber
+	maxuser := s.Shm.MaxUser
 	if maxuser < utmpnumber {
 		nowTS := types.NowTS()
 		s.Shm.MaxUser = utmpnumber

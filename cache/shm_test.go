@@ -4,11 +4,8 @@ import (
 	"reflect"
 	"sync"
 	"testing"
-	"unsafe"
 
-	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/types"
-	log "github.com/sirupsen/logrus"
 )
 
 func TestNewSHM(t *testing.T) {
@@ -63,16 +60,8 @@ func TestNewSHM(t *testing.T) {
 
 			Shm.Reset()
 
-			Shm.ReadAt(
-				unsafe.Offsetof(Shm.Raw.Version),
-				unsafe.Sizeof(Shm.Raw.Version),
-				unsafe.Pointer(&Shm.Raw.Version),
-			)
-			Shm.ReadAt(
-				unsafe.Offsetof(Shm.Raw.Size),
-				unsafe.Sizeof(Shm.Raw.Size),
-				unsafe.Pointer(&Shm.Raw.Size),
-			)
+			Shm.Raw.Version = Shm.Shm.Version
+			Shm.Raw.Size = Shm.Shm.Size
 
 			if !reflect.DeepEqual(Shm.Raw.Version, tt.wantVersion) {
 				t.Errorf("NewSHM() version: %v expected: %v", Shm.Raw.Version, tt.wantVersion)
@@ -92,6 +81,7 @@ func TestNewSHM(t *testing.T) {
 	}
 }
 
+/*
 func TestSHM_ReadAt(t *testing.T) {
 	setupTest()
 	defer teardownTest()
@@ -194,7 +184,6 @@ func TestSHM_ReadAt(t *testing.T) {
 	}
 }
 
-/*
 func TestSHM_WriteAt(t *testing.T) {
 	setupTest()
 	defer teardownTest()

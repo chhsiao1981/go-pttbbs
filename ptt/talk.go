@@ -2,7 +2,6 @@ package ptt
 
 import (
 	"syscall"
-	"unsafe"
 
 	"github.com/Ptt-official-app/go-pttbbs/cache"
 	"github.com/Ptt-official-app/go-pttbbs/cmsys"
@@ -92,25 +91,8 @@ func myWrite(myUtmpID ptttype.UtmpID, myInfo *ptttype.UserInfoRaw, pid types.Pid
 }
 
 func myWriteInit(myUtmpID ptttype.UtmpID, myInfo *ptttype.UserInfoRaw) (mode ptttype.UserOpMode, c0 byte) {
-	mode_p := &mode
-	mode_ptr := unsafe.Pointer(mode_p)
-	c0_p := &c0
-	c0_ptr := unsafe.Pointer(c0_p)
-
-	const offsetUInfo = unsafe.Offsetof(cache.Shm.Raw.UInfo)
-	const offsetMode = unsafe.Offsetof(ptttype.EMPTY_USER_INFO_RAW.Mode)
-	cache.Shm.ReadAt(
-		offsetUInfo+uintptr(myUtmpID)*ptttype.USER_INFO_RAW_SZ+offsetMode,
-		ptttype.USER_OP_MODE_SZ,
-		mode_ptr,
-	)
-
-	const offsetChatid = unsafe.Offsetof(ptttype.EMPTY_USER_INFO_RAW.Chatid)
-	cache.Shm.ReadAt(
-		offsetUInfo+uintptr(myUtmpID)*ptttype.USER_INFO_RAW_SZ+offsetChatid,
-		types.UINT8_SZ,
-		c0_ptr,
-	)
+	mode = cache.Shm.Shm.UInfo[myUtmpID].Mode
+	c0 = cache.Shm.Shm.UInfo[myUtmpID].Chatid[0]
 
 	cache.Shm.Shm.UInfo[myUtmpID].Mode = 0
 	cache.Shm.Shm.UInfo[myUtmpID].Chatid = ptttype.ChatID_t{}
@@ -147,28 +129,16 @@ func myWriteMsg(myUtmpID ptttype.UtmpID, myInfo *ptttype.UserInfoRaw, flag pttty
 	copy(msgQueue.UserID[:], myInfo.UserID[:])
 	copy(msgQueue.LastCallIn[:], msg)
 
-	const offsetUInfo = unsafe.Offsetof(cache.Shm.Raw.UInfo)
-	const offsetMsgCount = unsafe.Offsetof(ptttype.EMPTY_USER_INFO_RAW.MsgCount)
-
-	msgCount_p := &msgCount
-	msgCount_ptr := unsafe.Pointer(msgCount_p)
-	cache.Shm.ReadAt(
-		offsetUInfo+uintptr(utmpID)*ptttype.USER_INFO_RAW_SZ+offsetMsgCount,
-		types.UINT8_SZ,
-		msgCount_ptr,
-	)
-
+	msgCount = cache.Shm.Shm.UInfo[utmpID].MsgCount
 	if msgCount == ptttype.MAX_MSGS-1 {
 		return 0, ErrTooManyMsgs
 	}
 
-	idxMsg := int(cache.Shm.Shm.UInfo[utmpID].MsgCount)
-	(*msgCount_p)++
-
+	idxMsg := msgCount
+	msgCount++
 	cache.Shm.Shm.UInfo[utmpID].MsgCount++
 	cache.Shm.Shm.UInfo[utmpID].Msgs[idxMsg] = *msgQueue
 
-	const offsetWBTime = unsafe.Offsetof(ptttype.EMPTY_USER_INFO_RAW.WBTime)
 	if ptttype.NOKILLWATERBALL {
 		nowTS := types.NowTS()
 		cache.Shm.Shm.UInfo[utmpID].WBTime = nowTS

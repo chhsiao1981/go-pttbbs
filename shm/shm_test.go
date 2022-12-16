@@ -1,7 +1,6 @@
 package shm
 
 import (
-	"reflect"
 	"sync"
 	"testing"
 	"unsafe"
@@ -187,6 +186,7 @@ func TestOpenShm(t *testing.T) {
 	}
 }
 
+/*
 func TestReadAt(t *testing.T) {
 	setupTest()
 	defer teardownTest()
@@ -348,6 +348,7 @@ func TestWriteAt(t *testing.T) {
 		wg.Wait()
 	}
 }
+*/
 
 /*
 func TestIncUint32(t *testing.T) {

@@ -82,6 +82,7 @@ func CloseShm(shmid int, shmaddr unsafe.Pointer) (err error) {
 	return nil
 }
 
+/*
 func ReadAt(shmaddr unsafe.Pointer, offset int, size uintptr, outptr unsafe.Pointer) {
 	C.readwrapper(outptr, shmaddr, C.int(offset), C.ulong(size))
 }
@@ -89,6 +90,7 @@ func ReadAt(shmaddr unsafe.Pointer, offset int, size uintptr, outptr unsafe.Poin
 func WriteAt(shmaddr unsafe.Pointer, offset int, size uintptr, inptr unsafe.Pointer) {
 	C.writewrapper(shmaddr, C.int(offset), inptr, C.ulong(size))
 }
+*/
 
 /*
 func SetOrUint32(shmaddr unsafe.Pointer, offset int, flag uint32) {
