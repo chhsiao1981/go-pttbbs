@@ -12,18 +12,15 @@ void writewrapper(void *shmaddr, int offset, void *inptr, unsigned long n) {
   memcpy(dst, inptr, n);
 }
 
-void incuint32wrapper(void *shmaddr, int offset) {
-  unsigned char *dst_b = (unsigned char *)shmaddr + offset;
-  unsigned int *dst = (unsigned int *)dst_b;
-  (*dst)++;
-}
-
+/*
 void set_or_uint32wrapper(void *shmaddr, int offset, unsigned int flag) {
   unsigned char *c_dst = (unsigned char *)shmaddr + offset;
   unsigned int *dst = (unsigned int *)c_dst;
   *dst |= flag;
 }
+*/
 
+/*
 void innerset_int32wrapper(void *shmaddr, int offsetSrc, int offsetDst) {
   unsigned char *c_src = (unsigned char *)shmaddr + offsetSrc;
   unsigned char *c_dst = (unsigned char *)shmaddr + offsetDst;
@@ -31,12 +28,16 @@ void innerset_int32wrapper(void *shmaddr, int offsetSrc, int offsetDst) {
   int *dst = (int *)c_dst;
   *dst = *src;
 }
+*/
 
+/*
 void memsetwrapper(void *shmaddr, int offset, unsigned char c, unsigned long n) {
   unsigned char *dst = (unsigned char *)shmaddr + offset;
   memset(dst, c, n);
 }
+*/
 
+/*
 void set_bcacheptr(void *shmaddr, int offset) { _BCACHEPTR = (char *)shmaddr + offset; }
 
 char *_bcache(int idx) { return _BCACHEPTR + SIZE_BOARD_HEADER * idx; }
@@ -70,10 +71,12 @@ void qsort_cmpboardclass_wrapper(void *shmaddr, int offset, unsigned long n) {
   // qsort
   qsort(bsortedaddr, n, sizeof(int), cmpboardclass);
 }
+*/
 
 /**
  * qsort comparison function - 照板名排序
  */
+/*
 int cmpboardname(const void *i, const void *j) {
   int int_i = *(int *)i;
   int int_j = *(int *)j;
@@ -84,10 +87,12 @@ int cmpboardname(const void *i, const void *j) {
 
   return strncasecmp(bcache_cmp_i, bcache_cmp_j, SIZE_BOARD_HEADER_BRDNAME);
 }
+*/
 
 /**
  * qsort comparison function - 先照群組排序、同一個群組內依板名排
  */
+/*
 int cmpboardclass(const void *i, const void *j) {
   char *bcache_i = _bcache(*(int *)i);
   char *bcache_j = _bcache(*(int *)j);
@@ -103,3 +108,4 @@ int cmpboardclass(const void *i, const void *j) {
 
   return strncasecmp(bcache_cmp_i, bcache_cmp_j, SIZE_BOARD_HEADER_BRDNAME);
 }
+*/

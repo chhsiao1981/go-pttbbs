@@ -566,10 +566,7 @@ func newBoardStat(bidInCache ptttype.BidInStore, state ptttype.BoardStatAttr, bo
 	// XXX this is a hack to ensure the brd-postmask
 	brd_postmask := ptttype.BRD_POSTMASK
 	if (board.BrdAttr&ptttype.BRD_HIDE != 0) && (board.BrdAttr&ptttype.BRD_POSTMASK == 0) && state == ptttype.NBRD_BOARD {
-		cache.Shm.SetOrUint32(
-			unsafe.Offsetof(cache.Shm.Raw.BCache)+ptttype.BOARD_HEADER_RAW_SZ*uintptr(bidInCache)+ptttype.BOARD_HEADER_BRD_ATTR_OFFSET,
-			uint32(brd_postmask),
-		)
+		cache.Shm.Shm.BCache[bidInCache].BrdAttr |= brd_postmask
 		board.BrdAttr |= brd_postmask
 	}
 

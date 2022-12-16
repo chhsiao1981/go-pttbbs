@@ -6,7 +6,6 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/types"
 	log "github.com/sirupsen/logrus"
 )
@@ -350,6 +349,7 @@ func TestWriteAt(t *testing.T) {
 	}
 }
 
+/*
 func TestIncUint32(t *testing.T) {
 	setupTest()
 	defer teardownTest()
@@ -559,7 +559,9 @@ func TestMemset(t *testing.T) {
 		wg.Wait()
 	}
 }
+*/
 
+/*
 func TestQsortCmpBoardName(t *testing.T) {
 	setupTest()
 	defer teardownTest()
@@ -935,3 +937,4 @@ func TestQsortCmpBoardClass(t *testing.T) {
 		wg.Wait()
 	}
 }
+*/

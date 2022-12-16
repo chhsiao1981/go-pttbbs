@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"reflect"
 	"runtime/debug"
+	"sort"
 	"time"
 	"unsafe"
 
@@ -91,10 +92,6 @@ func NewSHM(key types.Key_t, isUseHugeTlb bool, isCreate bool) error {
 		unsafe.Offsetof(Shm.Raw.Size),
 		unsafe.Sizeof(Shm.Raw.Size),
 		unsafe.Pointer(&Shm.Raw.Size),
-	)
-
-	Shm.SetBCACHEPTR(
-		unsafe.Offsetof(Shm.Raw.BCache),
 	)
 
 	// verify version
@@ -236,28 +233,29 @@ func (s *SHM) WriteAt(offsetOfSHMRawComponent uintptr, size uintptr, inptr unsaf
 }
 */
 
+/*
 func (s *SHM) SetOrUint32(offsetOfSHMRawComponent uintptr, flag uint32) {
 	shm.SetOrUint32(s.Shmaddr, int(offsetOfSHMRawComponent), flag)
 }
+*/
 
+/*
 func (s *SHM) IncUint32(offsetOfSHMRawComponent uintptr) {
 	shm.IncUint32(s.Shmaddr, int(offsetOfSHMRawComponent))
 }
+*/
 
+/*
 func (s *SHM) Memset(offsetOfSHMRawComponent uintptr, c byte, size uintptr) {
 	shm.Memset(s.Shmaddr, int(offsetOfSHMRawComponent), c, size)
 }
+*/
 
+/*
 func (s *SHM) InnerSetInt32(offsetSrc uintptr, offsetDst uintptr) {
 	shm.InnerSetInt32(s.Shmaddr, int(offsetSrc), int(offsetDst))
 }
-
-// SetBCACHEPTR
-//
-// !!!Required in NewSHM (and should be set only once in NewSHM)
-func (s *SHM) SetBCACHEPTR(offsetOfSHMRawComponent uintptr) {
-	shm.SetBCACHEPTR(s.Shmaddr, int(offsetOfSHMRawComponent))
-}
+*/
 
 func (s *SHM) GetBNumber() (bnumber int32) {
 	s.ReadAt(
@@ -269,19 +267,19 @@ func (s *SHM) GetBNumber() (bnumber int32) {
 }
 
 func (s *SHM) QsortCmpBoardName() {
-	bnumber := s.GetBNumber()
-
-	const bsorted0sz = unsafe.Sizeof(s.Raw.BSorted[0])
-	offsetBsorted := unsafe.Offsetof(s.Raw.BSorted) + bsorted0sz*uintptr(ptttype.BSORT_BY_NAME)
-	shm.QsortCmpBoardName(s.Shmaddr, int(offsetBsorted), uint32(bnumber))
+	bnumber := ptttype.BidInStore(s.GetBNumber())
+	for i := ptttype.BidInStore(0); i < bnumber; i++ {
+		s.Shm.BSorted[ptttype.BSORT_BY_NAME][i] = i
+	}
+	sort.Sort(shmBoardByName(s.Shm.BSorted[ptttype.BSORT_BY_NAME][:bnumber]))
 }
 
 func (s *SHM) QsortCmpBoardClass() {
-	bnumber := s.GetBNumber()
-
-	const bsorted0sz = unsafe.Sizeof(s.Raw.BSorted[0])
-	offsetBsorted := unsafe.Offsetof(s.Raw.BSorted) + bsorted0sz*uintptr(ptttype.BSORT_BY_CLASS)
-	shm.QsortCmpBoardClass(s.Shmaddr, int(offsetBsorted), uint32(bnumber))
+	bnumber := ptttype.BidInStore(s.GetBNumber())
+	for i := ptttype.BidInStore(0); i < bnumber; i++ {
+		s.Shm.BSorted[ptttype.BSORT_BY_CLASS][i] = i
+	}
+	sort.Sort(shmBoardByClass(s.Shm.BSorted[ptttype.BSORT_BY_CLASS][:bnumber]))
 }
 
 func (s *SHM) CheckMaxUser() {
