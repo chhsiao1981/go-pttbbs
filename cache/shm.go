@@ -191,66 +191,6 @@ func (s *SHM) Reset() {
 	copy(shmBytes[:], ptrBytes[:])
 }
 
-// ReadAt
-//
-// Require precalculated offset and size and outptr to efficiently get the data.
-// See tests for exact usage.
-// [!!!] If we are reading from the array, make sure that have unit-size * n in the size.
-//
-// Params
-//
-//	offsetOfSHMRawComponent: offset from SHMRaw
-//	size: size of the variable, usually can be referred from SHMRaw
-//	      [!!!]If we are reading from the array, make sure that have unit-size * n in the size.
-//	outptr: the ptr of the object to read.
-/*
-func (s *SHM) ReadAt(offsetOfSHMRawComponent uintptr, size uintptr, outptr unsafe.Pointer) {
-	shm.ReadAt(s.Shmaddr, int(offsetOfSHMRawComponent), size, outptr)
-}
-*/
-
-// WriteAt
-//
-// Require recalculated offset and size and outptr to efficiently get the data.
-// See tests for exact usage.
-// [!!!]If we are reading from the array, make sure that have unit-size * n in the size.
-//
-// Params
-//
-//	offsetOfSHMRawComponent: offset from SHMRaw
-//	size: size of the variable
-//	      [!!!]If we are reading from the array, make sure that have unit-size * n in the size.
-//	inptr: the ptr of the object to write.
-/*
-func (s *SHM) WriteAt(offsetOfSHMRawComponent uintptr, size uintptr, inptr unsafe.Pointer) {
-	shm.WriteAt(s.Shmaddr, int(offsetOfSHMRawComponent), size, inptr)
-}
-*/
-
-/*
-func (s *SHM) SetOrUint32(offsetOfSHMRawComponent uintptr, flag uint32) {
-	shm.SetOrUint32(s.Shmaddr, int(offsetOfSHMRawComponent), flag)
-}
-*/
-
-/*
-func (s *SHM) IncUint32(offsetOfSHMRawComponent uintptr) {
-	shm.IncUint32(s.Shmaddr, int(offsetOfSHMRawComponent))
-}
-*/
-
-/*
-func (s *SHM) Memset(offsetOfSHMRawComponent uintptr, c byte, size uintptr) {
-	shm.Memset(s.Shmaddr, int(offsetOfSHMRawComponent), c, size)
-}
-*/
-
-/*
-func (s *SHM) InnerSetInt32(offsetSrc uintptr, offsetDst uintptr) {
-	shm.InnerSetInt32(s.Shmaddr, int(offsetSrc), int(offsetDst))
-}
-*/
-
 func (s *SHM) GetBNumber() (bnumber int32) {
 	return s.Shm.BNumber
 }
