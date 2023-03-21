@@ -29,11 +29,11 @@ func EditPost(
 	oldsum cmsys.Fnv64_t,
 	ip *ptttype.IPv4_t,
 	from []byte) (
-
 	newContent []byte,
 	mtime types.Time4,
 	newTitle *ptttype.Title_t,
-	err error) {
+	err error,
+) {
 	// 1. check perm.
 	board, err := cache.GetBCache(bid)
 	if err != nil {
@@ -175,7 +175,6 @@ func ReadPost(
 	filename *ptttype.Filename_t,
 	retrieveTS types.Time4,
 	isHash bool) (
-
 	content []byte,
 	mtime types.Time4,
 	hash cmsys.Fnv64_t,
@@ -221,9 +220,9 @@ func getBoardRestrictionReason(
 	uid ptttype.UID,
 	board *ptttype.BoardHeaderRaw,
 	bid ptttype.Bid) (
-
 	reason ptttype.RestrictReason,
-	err error) {
+	err error,
+) {
 	if user.UserLevel.HasUserPerm(ptttype.PERM_SYSOP) {
 		return ptttype.RESTRICT_REASON_NONE, nil
 	}
@@ -248,9 +247,9 @@ func NewPost(
 	content [][]byte,
 	ip *ptttype.IPv4_t,
 	from []byte) (
-
 	summary *ptttype.ArticleSummaryRaw,
-	err error) {
+	err error,
+) {
 	return DoPostArticle(user, uid, boardID, bid, ptttype.EDITFLAG_KIND_NEWPOST, posttype, title, content, ip, from)
 }
 
@@ -268,10 +267,9 @@ func DoPostArticle(
 	content [][]byte,
 	ip *ptttype.IPv4_t,
 	from []byte) (
-
 	summary *ptttype.ArticleSummaryRaw,
-	err error) {
-
+	err error,
+) {
 	board, err := cache.GetBCache(bid)
 	if err != nil {
 		return nil, err
@@ -426,6 +424,27 @@ func DoPostArticle(
 	return summary, nil
 }
 
+func ReadPostTemplate(user *ptttype.UserecRaw, uid ptttype.UID, boardID *ptttype.BoardID_t, bid ptttype.Bid, templateID int, retrieveTS types.Time4, isHash bool) (content []byte, mtime types.Time4, checksum cmsys.Fnv64_t, err error) {
+	// 2. check perm.
+	board, err := cache.GetBCache(bid)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	statAttr := boardPermStat(user, uid, board, bid)
+	if statAttr == ptttype.NBRD_INVALID {
+		return nil, 0, 0, ErrNotPermitted
+	}
+
+	// 3. get filename
+	theFilename, err := path.SetBNFile(boardID, ptttype.POSTSAMPLE, templateID)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	return readContent(theFilename, retrieveTS, isHash)
+}
+
 func IsFreeBoardName(boardID *ptttype.BoardID_t) bool {
 	if types.Cstrcmp(boardID[:], ptttype.BN_TEST[:]) == 0 {
 		return true
@@ -463,12 +482,11 @@ func CrossPost(
 	filemode ptttype.FileMode,
 	ip *ptttype.IPv4_t,
 	from []byte) (
-
 	articleSummary *ptttype.ArticleSummaryRaw,
 	comment []byte,
 	commentMTime types.Time4,
-	err error) {
-
+	err error,
+) {
 	board, err := cache.GetBCache(bid)
 	if err != nil {
 		return nil, nil, 0, err
@@ -808,9 +826,8 @@ func tnSafeStrip(
 	uid ptttype.UID,
 	board *ptttype.BoardHeaderRaw,
 	bid ptttype.Bid) (
-
-	newTitle []byte) {
-
+	newTitle []byte,
+) {
 	if isTnAllowed(title, user, uid, board, bid) {
 		return title
 	}
@@ -826,8 +843,8 @@ func isTnAllowed(
 	uid ptttype.UID,
 	board *ptttype.BoardHeaderRaw,
 	bid ptttype.Bid) (
-
-	isAllowed bool) {
+	isAllowed bool,
+) {
 	if ptttype.ALLOW_FREE_TN_ANNOUNCE {
 		return true
 	}
@@ -857,7 +874,8 @@ func isModeBoard(
 	user *ptttype.UserecRaw,
 	uid ptttype.UID,
 	board *ptttype.BoardHeaderRaw,
-	bid ptttype.Bid) bool {
+	bid ptttype.Bid,
+) bool {
 	if user.UserLevel.HasUserPerm(ptttype.PERM_NOCITIZEN) {
 		return false
 	}
@@ -883,8 +901,8 @@ func doPostArticleWriteFile(
 	board *ptttype.BoardHeaderRaw,
 	bid ptttype.Bid,
 	ip *ptttype.IPv4_t,
-	from []byte) (entropy int, err error) {
-
+	from []byte,
+) (entropy int, err error) {
 	return WriteFile(fpath, flags, true, isUseAnony, title, content, user, uid, board, bid, ip, from, ptttype.USER_OP_POSTING)
 }
 
@@ -896,10 +914,9 @@ func doCrosspost(
 	boardID *ptttype.BoardID_t,
 	header *ptttype.FileHeaderRaw,
 	fpath string) (
-
 	summary *ptttype.ArticleSummaryRaw,
-	err error) {
-
+	err error,
+) {
 	bid, err := cache.GetBid(boardID)
 	if err != nil {
 		return nil, err
