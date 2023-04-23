@@ -7,27 +7,30 @@ import "strconv"
 type AnyMessage byte
 
 const (
-	AnyMessageNONE       AnyMessage = 0
-	AnyMessagePutRequest AnyMessage = 1
-	AnyMessagePutReply   AnyMessage = 2
-	AnyMessageGetRequest AnyMessage = 3
-	AnyMessageGetReply   AnyMessage = 4
+	AnyMessageNONE        AnyMessage = 0
+	AnyMessagePutRequest  AnyMessage = 1
+	AnyMessagePutReply    AnyMessage = 2
+	AnyMessageGetRequest  AnyMessage = 3
+	AnyMessageGetReply    AnyMessage = 4
+	AnyMessageListRequest AnyMessage = 5
 )
 
 var EnumNamesAnyMessage = map[AnyMessage]string{
-	AnyMessageNONE:       "NONE",
-	AnyMessagePutRequest: "PutRequest",
-	AnyMessagePutReply:   "PutReply",
-	AnyMessageGetRequest: "GetRequest",
-	AnyMessageGetReply:   "GetReply",
+	AnyMessageNONE:        "NONE",
+	AnyMessagePutRequest:  "PutRequest",
+	AnyMessagePutReply:    "PutReply",
+	AnyMessageGetRequest:  "GetRequest",
+	AnyMessageGetReply:    "GetReply",
+	AnyMessageListRequest: "ListRequest",
 }
 
 var EnumValuesAnyMessage = map[string]AnyMessage{
-	"NONE":       AnyMessageNONE,
-	"PutRequest": AnyMessagePutRequest,
-	"PutReply":   AnyMessagePutReply,
-	"GetRequest": AnyMessageGetRequest,
-	"GetReply":   AnyMessageGetReply,
+	"NONE":        AnyMessageNONE,
+	"PutRequest":  AnyMessagePutRequest,
+	"PutReply":    AnyMessagePutReply,
+	"GetRequest":  AnyMessageGetRequest,
+	"GetReply":    AnyMessageGetReply,
+	"ListRequest": AnyMessageListRequest,
 }
 
 func (v AnyMessage) String() string {
