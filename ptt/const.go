@@ -25,3 +25,7 @@ var (
 
 	CROSS_POST_PREFIX = []byte("[\xc2\xe0\xbf\xfd]")
 )
+
+const (
+	VERIFYDB_BUF_SIZE = 8192
+)

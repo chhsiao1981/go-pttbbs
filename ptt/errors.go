@@ -39,6 +39,10 @@ var (
 
 	// read.go
 	ErrDeleteArticleFailed = errors.New("delete article failed")
+
+	ErrInvalidVerifyDBReply = errors.New("invalid verifydb reply")
+
+	ErrInvalidVerifyDBTransact = errors.New("invalid verifydb transact")
 )
 
 func FatalLockedUser(userID *ptttype.UserID_t) error {

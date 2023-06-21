@@ -28,3 +28,5 @@ type RegMailDBReqHeader struct {
 	Cb        types.Size_t
 	Operation EmailDBOp
 }
+
+const REG_MAILDB_REQ_HEADER_SZ = unsafe.Sizeof(RegMailDBReqHeader{})

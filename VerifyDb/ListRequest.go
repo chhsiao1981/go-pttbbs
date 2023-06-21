@@ -20,6 +20,7 @@ func GetRootAsListRequest(buf []byte, offset flatbuffers.UOffsetT) *ListRequest 
 func GetSizePrefixedRootAsListRequest(buf []byte, offset flatbuffers.UOffsetT) *ListRequest {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &ListRequest{}
+
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }

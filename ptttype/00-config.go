@@ -215,7 +215,25 @@ var (
 	NOFLOODING = false
 
 	/* 使用 daemon/fromd, 使用外部daemon紀錄上站故鄉名稱 */
-	FROMD = false
+	FROMD      = false
+	FROMD_ADDR = ""
+
+	/* regmaild */
+	REGMAILD_ADDR = ""
+
+	/* angelsbeat */
+	ANGELBEATS_ADDR            = ""
+	ANGELBEATS_PERF_MIN_PERIOD = 600
+
+	/* brcstored */
+	BRCSTORED_ADDR = ""
+
+	/* commentd */
+	COMMENTD_ADDR = ""
+	COMMENTLEN    = 80
+
+	/* postd */
+	POSTD_ADDR = ""
 
 	/* 若定義, 則不允許註冊 guest */
 	NO_GUEST_ACCOUNT_REG = false
